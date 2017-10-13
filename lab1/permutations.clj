@@ -21,7 +21,7 @@
         (range (- n 1))))
 (println  (getStrings ["a", "b", "c"] 3))
     
-(test/testing "Testing defpackage"
+(test/testing "Testing permutations"
 (test/is (= (getStrings [] 0) []))
 (test/is (= (getStrings ["a"] 1) ["a"]))
 (test/is (= (getStrings ["a", "b"] 1) ["a", "b"]))
