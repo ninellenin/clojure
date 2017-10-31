@@ -4,59 +4,56 @@
 (defn stepsNumber
     "Returns number of steps in approximation with fixed step length."
     [x step]
-    (quot x step))    
+    (inc (int (quot x step))))
 
 (defn approximate
     "Returns trapezoid approximation of integral in [n * step, (n + 1) * step]."
-    [function n step]
+    [function step n]
         (* 1/2 (+ (function (* n step)) (function (* (+ n 1) step))) step))
 
 (defn approximateRange
     "Returns trapezoid approximation of integral in [from to]."
     [function from to]
         (* 1/2  (+ (function from) (function to)) (- to from)))
-
-(defn approximateSum
-    "Returns lazy sequence of integral approximations for function and step."
+        
+(defn approximateSumms
     [function step]
-    (map
-            first
-            (iterate
-                (fn [[sum n]]
-                    [(+ sum (approximate function n step)) (inc n)])
-                [0 0.])))
+    (let [sum (map
+                first
+                (iterate
+                    (fn 
+                        [[sum n]]
+                            [(+ sum (approximate function step n)) (inc n)])
+                    [0. 0]))]
+        (fn [n] (nth sum n))))
 
-(def memoizeApproximateSum
-    (memoize approximateSum))
-
-(let [step 0.001]
-    (defn integrate
+(defn integrate
     "Returns function that perform numerical integration by the method of trapezoids."
     [function]
-    (fn [x]
-            (+
-                (nth (memoizeApproximateSum function step) (stepsNumber x step))
-                (approximateRange function (* step (stepsNumber x step)) x)))))
+        (let  [step 0.001
+                approximation (approximateSumms function step)]
+            (fn [x]
+                (+
+                (approximation (stepsNumber x step))
+                (approximateRange function  (* step (stepsNumber x step)) x)))))
 
 (defn constant
     [x]
-    1)
-
+1)
+                            
 (defn line
     [x]
-    x)
-
+x)
+                            
 (defn sin
     [x]
-    (Math/sin x))
-
-;(def memoizeApproximate 
-;    (memoize approximateSum))
-
+(Math/sin x))
+                
 (defn -main
         [& args]
-    (println ((integrate line ) 1.))
-    (time ((integrate sin ) 10.))
-    (time ((integrate sin ) 100.))
-    (time ((integrate sin ) 101.))
-    (time ((integrate sin ) 99.)))
+    (println ((integrate line ) 2.))
+    (let [integrate-sin (integrate sin)]
+        (time (integrate-sin 100.))
+        (time (integrate-sin 100.))
+        (time (integrate-sin 101.))
+        (time (integrate-sin 99.))))
