@@ -4,16 +4,16 @@
 (defn apply-rule
     [rules argument]
     ((some (fn [rule]
-        (if ((first rule) argument)
-            (second rule)
-            false))
+            (if ((first rule) argument)
+                (second rule)
+                false))
         rules)
-    argument))
+     argument))
 
 (defn cartesian 
     [colls]
     (if (empty? colls)
       '(())
       (for [x (first colls)
-          more (cartesian (rest colls))]
-      (cons x more))))
+            more (cartesian (rest colls))]
+       (cons x more))))
