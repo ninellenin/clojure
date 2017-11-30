@@ -1,4 +1,5 @@
 (ns ru.nsu.fit.dt.sazonova.bool-expressions.api
+    (:use [ru.nsu.fit.dt.sazonova.bool-expressions.utils])
     (:gen-class))
 
 (defn expression?
@@ -22,6 +23,7 @@
     "Check if the expression is constant."
     [expression]
     (= (expression-type expression) :const))
+
 
 (defn constant-value
     "Get the value of constant."
@@ -49,8 +51,7 @@
     "Get the variable name."
     [variable]
     {:pre [(variable? variable)]}
-    (expression-argument variable))   
-                 
+    (expression-argument variable))           
     
 (defn same-variable?
     "Check if two variables are equals."
@@ -60,14 +61,56 @@
         (= (variable-name variable1) (variable-name variable2)))
             
 (defn logic-not?
+    "Check if expression is logic not."
     [expression]
     (= (expression-type expression) :not))
                           
 (defn logic-or? 
+    "Check if expression is logic or."
     [expression]
     (= (expression-type expression) :or))
                           
 (defn logic-and?
+    "Check if expression is logic and."
     [expression]
     (= (expression-type expression) :and))
 
+(declare print-expression)
+(declare print-nested-expression)
+
+(def print-expression-rules
+    (list 
+        [constant? 
+            (fn [constant] (if (constant-value constant) 1 0))]
+        [variable?
+            (fn [variable] (name (variable-name variable)))]
+        [logic-not?
+            (fn [expression] (str "~" (print-nested-expression (expression-argument expression))))]
+        [logic-and?
+            (fn [expression] 
+                (reduce
+                    (fn [result expr]
+                        (str result "&" (print-nested-expression expr)))
+                    (print-nested-expression (first (expression-argument expression)))
+                    (rest (expression-argument expression))))]
+        [logic-or?
+            (fn [expression]
+                (reduce 
+                    (fn [result expr]
+                        (str result "|" (print-nested-expression expr)))
+                    (print-nested-expression (first (expression-argument expression)))
+                    (rest (expression-argument expression))))]
+                ))
+        
+(defn print-expression 
+    "Printer for expression."
+    [expression]
+    {:pre [(expression? expression)]}
+     (apply-rule print-expression-rules expression))
+
+(defn print-nested-expression
+    "Printer for brackets in nested expressions."
+    [expression]
+    {:pre [(expression? expression)]}
+    (if (or (logic-and? expression) (logic-and? expression))
+    (str "(" (print-expression expression) ")") (print-expression expression)))
