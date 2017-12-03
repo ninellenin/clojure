@@ -33,6 +33,9 @@
         (is (false-constant? (normalize (logic-and (variable :x) (constant false)))))
         (is (false-constant? (normalize (logic-and (variable :x) (logic-not (variable :x))))))
         (is (equals? (variable :x) (normalize (logic-and (variable :x) (variable :x))))))
+        (is (equals? (logic-and (variable :x) (variable :y)) (logic-and (variable :y) (variable :x))))
+        (is (equals? (logic-and (variable :x) (variable :a ) (variable :y)) (logic-and (variable :y)
+            (logic-and (variable :a) (variable :x)))))
     (testing "Testing of logic not."
         (is (false-constant? (normalize (logic-not (constant true)))))
         (is (equals? (variable :x) (normalize (logic-not (logic-not (variable :x))))))
@@ -48,4 +51,7 @@
         (is (equals? (variable :x) (normalize (logic-or (variable :x) (constant false)))))
         (is (equals? (constant true) (normalize (logic-or (variable :x) (constant true))))
         (is (true-constant? (normalize (logic-or (variable :x) (logic-not (variable :x)))))
-        (is (equals? (variable :x) (normalize (logic-or (variable :x) (variable :x)))))))))
+        (is (equals? (variable :x) (normalize (logic-or (variable :x) (variable :x)))))))
+        (is (equals? (logic-or (variable :x) (variable :y)) (logic-or (variable :y) (variable :x))))
+        (is (equals? (logic-or (variable :x) (variable :a ) (variable :y)) (logic-or (variable :y)
+            (logic-or (variable :a) (variable :x)))))))

@@ -75,6 +75,19 @@
     [expression]
     (= (expression-type expression) :and))
 
+(defn atom?
+    "Check if expression is variable or negation of variable."
+    [expression]
+    (or (variable? expression) 
+        (and (logic-not? expression) (variable? (expression-argument expression)))))
+
+(defn atom-variable
+    "Get variable of the atom."
+    [atom]
+    {:pre [(atom? atom)]}
+    (if (variable? atom) (variable-name atom)
+        (variable-name (expression-argument atom))))
+
 (declare print-expression)
 (declare print-nested-expression)
 
@@ -101,6 +114,17 @@
                     (print-nested-expression (first (expression-argument expression)))
                     (rest (expression-argument expression))))]
                 ))
+
+(defn get-all-variables
+    "Get all variables of expression."
+    [expression]
+    (if (constant? expression)
+        '()
+        (if (variable? expression)
+            (list (variable-name expression))
+            (if (logic-not? expression)
+                (get-all-variables (expression-argument expression))
+                    (distinct (flatten (map (fn [expr] (get-all-variables expr)) (expression-argument expression))))))))
         
 (defn print-expression 
     "Printer for expression."
@@ -112,5 +136,5 @@
     "Printer for brackets in nested expressions."
     [expression]
     {:pre [(expression? expression)]}
-    (if (or (logic-and? expression) (logic-and? expression))
+    (if (or (logic-or? expression) (logic-and? expression))
     (str "(" (print-expression expression) ")") (print-expression expression)))

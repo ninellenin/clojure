@@ -5,17 +5,6 @@
     (:use [ru.nsu.fit.dt.sazonova.bool-expressions.utils])
     (:gen-class))
 
-(defn get-all-variables
-    "Get all variables of expression."
-    [expression]
-    (if (constant? expression)
-        '()
-        (if (variable? expression)
-            (list (variable-name expression))
-            (if (logic-not? expression)
-                (get-all-variables (expression-argument expression))
-                    (distinct (flatten (map (fn [expr] (get-all-variables expr)) (expression-argument expression))))))))
-
 (defn get-all-significations
     "Get all possible signification of input variables."
     [variables]

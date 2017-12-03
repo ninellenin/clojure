@@ -5,6 +5,19 @@
     (:use [ru.nsu.fit.dt.sazonova.bool-expressions.utils])
     (:gen-class))
 
+(defn get-sorted-variables
+    "Get sorted expression's variables instances."
+    [expressions]
+    (let [atoms (filter atom? expressions)
+            others (filter (fn [expression] (not (atom? expression))) expressions)]
+        (apply conj 
+            (vals
+                (reduce
+                    (fn [result atom]
+                        (assoc result (atom-variable atom) atom))
+                    (sorted-map)
+                    atoms)) 
+            others)))
 
 (declare normalize-logic-not)
 (declare normalize-logic-and)
@@ -29,6 +42,17 @@
                                 (set (filter variable? expressions))
                                 (set (map expression-argument (filter logic-not? expressions))))))))
             (fn [expressions] (constant false))]
+        [(partial some logic-and?)
+            (fn [expressions] 
+                (let [and-expressions (filter logic-and? expressions)
+                    other-expressions (filter (fn [x] (not (logic-and? x))) expressions)]
+                (apply normalize-logic-and  
+                    (apply conj other-expressions
+                        (reduce 
+                            (fn [result arg]
+                                (apply conj result (expression-argument arg)))
+                            '()
+                            and-expressions)))))]
         [(partial some logic-or?)
             (fn [expressions]
                 (let [or-parts (filter logic-or? expressions)
@@ -40,7 +64,8 @@
                             (apply normalize-logic-and (concat other-parts x)))
                         (cartesian (map expression-argument or-parts))))))]
         [some?
-            (fn [expressions] (apply logic-and expressions))]))
+            (fn [expressions] 
+                (apply logic-and (get-sorted-variables expressions)))]))
 
 (def logic-or-rules
     (list 
@@ -61,8 +86,20 @@
                 (set (filter variable? expressions))
                 (set (map expression-argument (filter logic-not? expressions))))))))
                 (fn [expressions] (constant true))]
+        [(partial some logic-or?)
+            (fn [expressions] 
+                (let [or-expressions (filter logic-or? expressions)
+                    other-expressions (filter (fn [x] (not (logic-or? x))) expressions)]
+                    (apply normalize-logic-or 
+                         (apply conj other-expressions
+                            (reduce 
+                                (fn [result arg]
+                                    (apply conj result (expression-argument arg)))
+                                '()
+                                or-expressions)))))]
         [some?
-            (fn [expressions] (apply logic-or expressions))]))   
+            (fn [expressions] 
+               (apply logic-or (get-sorted-variables expressions)))]))   
 
 (def logic-not-rules
     (list 
